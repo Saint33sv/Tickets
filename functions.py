@@ -25,14 +25,14 @@ class Event(object):
                 page = i[1].get(row)
         return page
 
-    def print_bilet(self, button):
+    def save_bilet(self, button):
         row = button.parent()
         loc = row.parent()
-        price = self.find_price(location=loc.title(), row=row.title())
+        price = str(self.find_price(location=loc.title(), row=row.title()))
         self.sales_revenue += int(price)
         self.bilet_num += 1
         self.list_buttons.append((loc.title(), row.title(), button.text()))
-        print(f"""Билет №{str(self.bilet_num)}
+        text_billet = f"""Билет №{str(self.bilet_num)}
 {self.name}
 Дата: {self.data}
 Время: {self.time}
@@ -40,12 +40,17 @@ class Event(object):
 {row.title()}
 Место: {button.text()}
 Цена: {price}
-Выручка: {str(self.sales_revenue)}""")
+Выручка: {str(self.sales_revenue)}"""
         self.save_config()
+        file = open(f"{self.not_path}/events/{self.projectname}/bilets/Билет№ {self.bilet_num},_{loc.title()}_{row.title()}_Место_{button.text()}", 'w')
+        file.write(text_billet)
+        file.close
+        button.setStyleSheet("background: red")
+        button.setEnabled(False)
 
     def make_events(self):
         """Функция указивает пути для создания папок и их названия"""
-        path = f"{self.not_path}\events"
+        path = f"{self.not_path}/events"
         folders = ('config', 'bilets')
         full_path = os.path.join(path, self.projectname)
         self.make_dirs(full_path)
@@ -65,7 +70,7 @@ class Event(object):
                         "rows_balcony": self.rows_balcony, "name_project": self.projectname,
                         "listButtons": self.list_buttons, "bilet_number": self.bilet_num,
                         "sales_revenue": self.sales_revenue}
-        file = open(f"{self.not_path}\\events\\{self.projectname}\\config\\configuration.txt", "wb")
+        file = open(f"{self.not_path}/events/{self.projectname}/config/configuration.txt", "wb")
         pickle.dump(data_to_save, file)
         file.close()
 

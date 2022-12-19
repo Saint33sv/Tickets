@@ -1,7 +1,6 @@
 import sys
 import shutil
 
-
 from test import *
 from functions import *
 from start_window import *
@@ -10,13 +9,6 @@ from ev_redact_win import *
 from choise import *
 
 from PyQt5.QtCore import QDate, QTime
-
-
-def show_choise_window():
-    global Window_choise
-    Window_choise = QtWidgets.QMainWindow()
-    ui_coise.setupUi(Window_choise)
-    Window_choise.show()
 
 
 def show_map():
@@ -42,11 +34,23 @@ def show_map():
             if (button.text() == parameters[2]) and (row.title() == parameters[1]) and (loc.title() == parameters[0]):
                 button.setStyleSheet("background: red")
 
-    def send_button():
+    def show_choise_window():
+        global Window_choise
+        Window_choise = QtWidgets.QMainWindow()
+        ui_choise.setupUi(Window_choise)
         s_b = MainWindow.sender()
-        # show_choise_window()
-        s_b.setEnabled(False)
-        return new_event.print_bilet(s_b)
+        def click_bay_button():
+            new_event.save_bilet(s_b)
+            Window_choise.close()
+
+        Window_choise.show()
+        ui_choise.pushButton_bay.clicked.connect(click_bay_button)
+        ui_choise.pushButton_block.clicked.connect()
+
+    def send_button():
+        show_choise_window()
+        #
+        #
 
     ui_map.label.setText(new_event.projectname)
     ui_map.connected_buttons(send_button)
@@ -73,8 +77,7 @@ def show_red_ev_win():
     EventRedactWindow = QtWidgets.QMainWindow()
     ui_red_win = Ui_EventRedactWindow()
     ui_red_win.setupUi(EventRedactWindow)
-    name, data, time, price1, price2, rows_Logia, rows_balcony, project_name, list_but, bilet_num, sales_rev \
-        = read_from_file()
+    name, data, time, price1, price2, rows_Logia, rows_balcony, project_name, list_but, bilet_num, sales_rev = read_from_file()
     redacted_event = Event(name, data, time, price1, price2)
     redacted_event.rows_logia = rows_Logia.copy()
     redacted_event.rows_balcony = rows_balcony.copy()
@@ -170,7 +173,7 @@ def item_path():
     """Возвращает путь к файлу конфигурации"""
     global name_item
     name_item = ui.listWidget.currentItem().text()
-    name_path = f"{path}\\{name_item}\\config\\configuration.txt"
+    name_path = f"{path}/{name_item}/config/configuration.txt"
     ui.pushButton_2.setEnabled(True)
     ui.pushButton_3.setEnabled(True)
     ui.pushButton_4.setEnabled(True)
@@ -204,7 +207,7 @@ def delete_event():
     ui.pushButton_2.setEnabled(False)
     ui.pushButton_3.setEnabled(False)
     ui.pushButton_4.setEnabled(False)
-    del_path = f"{path}\\{name_item}"
+    del_path = f"{path}/{name_item}"
     basket = []
     basket.append(del_path)
     for dir in basket:
@@ -212,7 +215,7 @@ def delete_event():
 
 
 name_item = None
-path = os.getcwd() + r"\events"
+path = os.getcwd() + r"/events"
 list_events = os.listdir(path)
 
 
@@ -222,11 +225,11 @@ if __name__ == "__main__":
     ui = Ui_StartWindow()
     ui_map = Ui_MainWindow()
     ui_event = Ui_EventWindow()
-    ui_coise = Ui_Window_choise()
+    ui_choise = Ui_Window_choise()
     ui.setupUi(StartWindow)
 
     name_item = None
-    path = os.getcwd() + r"\events"
+    path = os.getcwd() + r"/events"
     list_events = os.listdir(path)
 
     ui.pushButton_2.setEnabled(False)
