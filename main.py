@@ -7,6 +7,7 @@ from start_window import *
 from event_window import *
 from ev_redact_win import *
 from choise import *
+from statistic import *
 
 from PyQt5.QtCore import QDate, QTime
 
@@ -25,36 +26,78 @@ def show_map():
     new_event.map[1][1] = new_event.rows_balcony
     new_event.projectname = project_name
     new_event.list_buttons = list_but
-    new_event.bilet_num = bil_num
+    new_event.ticket_num = bil_num
     new_event.sales_revenue = sales_rev
     for button in ui_map.list_all_price_buttons:
         row = button.parent()
         loc = row.parent()
         for parameters in new_event.list_buttons:
-            if (button.text() == parameters[2]) and (row.title() == parameters[1]) and (loc.title() == parameters[0]):
+            if (button.text() == parameters[2]) and (row.title() == parameters[1]) and (loc.title() == parameters[0]) \
+                    and parameters[3] == "red":
                 button.setStyleSheet("background: red")
+            if (button.text() == parameters[2]) and (row.title() == parameters[1]) and (loc.title() == parameters[0]) \
+                    and parameters[3] == "green":
+                button.setStyleSheet("background: green")
 
     def show_choise_window():
         global Window_choise
         Window_choise = QtWidgets.QMainWindow()
         ui_choise.setupUi(Window_choise)
         s_b = MainWindow.sender()
+        if s_b.styleSheet() == "background: red":
+            ui_choise.pushButton_bay.setEnabled(False)
+            ui_choise.pushButton_block.setEnabled(False)
+        if s_b.styleSheet() == "background: green":
+            ui_choise.pushButton_block.setEnabled(False)
+
         def click_bay_button():
-            new_event.save_bilet(s_b)
+            new_event.save_ticket(s_b)
+            s_b.setStyleSheet("background: red")
+            # s_b.setEnabled(False)
+            Window_choise.close()
+
+        def click_block_button():
+            new_event.book_a_ticket(s_b)
+            s_b.setStyleSheet("background: green")
+            Window_choise.close()
+
+        def click_cancel_button():
+            Window_choise.close()
+
+        def click_clean_button():
+            new_event.delete_ticket(s_b)
+            s_b.setStyleSheet("")
             Window_choise.close()
 
         Window_choise.show()
         ui_choise.pushButton_bay.clicked.connect(click_bay_button)
-        ui_choise.pushButton_block.clicked.connect()
+        ui_choise.pushButton_block.clicked.connect(click_block_button)
+        ui_choise.pushButton_cuncel.clicked.connect(click_cancel_button)
+        ui_choise.pushButton_clean.clicked.connect(click_clean_button)
+
+    def show_statistic_window():
+        global Statistic
+        Statistic = QtWidgets.QDialog()
+        ui_stat.setupUi(Statistic)
+
+        def save_file_stat():
+            file = open(f"{new_event.not_path}\\events\\{new_event.projectname}\\config\\Статистика.txt", "w")
+            file.write(new_event.make_statistic())
+            file.close()
+            Statistic.close()
+
+        ui_stat.textBrowser.setText(new_event.make_statistic())
+        ui_stat.pushButton_ok.clicked.connect(lambda: Statistic.close())
+        ui_stat.pushButton_save.clicked.connect(save_file_stat)
+        Statistic.show()
 
     def send_button():
         show_choise_window()
-        #
-        #
 
     ui_map.label.setText(new_event.projectname)
     ui_map.connected_buttons(send_button)
     ui_map.pushButton_bake.clicked.connect(lambda: show_start_window(MainWindow))
+    ui_map.pushButton_stat.clicked.connect(show_statistic_window)
     StartWindow.close()
     MainWindow.show()
 
@@ -173,7 +216,7 @@ def item_path():
     """Возвращает путь к файлу конфигурации"""
     global name_item
     name_item = ui.listWidget.currentItem().text()
-    name_path = f"{path}/{name_item}/config/configuration.txt"
+    name_path = f"{path}\\{name_item}\\config\\configuration.txt"
     ui.pushButton_2.setEnabled(True)
     ui.pushButton_3.setEnabled(True)
     ui.pushButton_4.setEnabled(True)
@@ -194,9 +237,9 @@ def read_from_file():
     rows_balcony = data_to_load["rows_balcony"]
     projectname = data_to_load["name_project"]
     list_buttons = data_to_load["listButtons"]
-    bilet_num = data_to_load["bilet_number"]
+    ticket_num = data_to_load["ticket_num"]
     sales_rev = data_to_load["sales_revenue"]
-    return name, data, time, price1, price2, rows_Logia, rows_balcony, projectname, list_buttons, bilet_num, sales_rev
+    return name, data, time, price1, price2, rows_Logia, rows_balcony, projectname, list_buttons, ticket_num, sales_rev
 
 
 def delete_event():
@@ -207,7 +250,7 @@ def delete_event():
     ui.pushButton_2.setEnabled(False)
     ui.pushButton_3.setEnabled(False)
     ui.pushButton_4.setEnabled(False)
-    del_path = f"{path}/{name_item}"
+    del_path = f"{path}\{name_item}"
     basket = []
     basket.append(del_path)
     for dir in basket:
@@ -215,7 +258,7 @@ def delete_event():
 
 
 name_item = None
-path = os.getcwd() + r"/events"
+path = os.getcwd() + r"\events"
 list_events = os.listdir(path)
 
 
@@ -226,10 +269,11 @@ if __name__ == "__main__":
     ui_map = Ui_MainWindow()
     ui_event = Ui_EventWindow()
     ui_choise = Ui_Window_choise()
+    ui_stat = Ui_Statistic()
     ui.setupUi(StartWindow)
 
     name_item = None
-    path = os.getcwd() + r"/events"
+    path = os.getcwd() + r"\events"
     list_events = os.listdir(path)
 
     ui.pushButton_2.setEnabled(False)
